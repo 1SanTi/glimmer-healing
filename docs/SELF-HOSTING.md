@@ -79,7 +79,7 @@ EXPO_PUBLIC_ADMIN_PASSWORD=一个强密码
 
 ## 4. 部署 Edge Functions
 
-本项目包含 33 个边缘函数，位于 `supabase/functions/`。
+本项目包含 32 个可部署边缘函数（另有 1 个共享模块 `_shared/alipay-sdk-deno.ts`），位于 `supabase/functions/`。
 
 ```bash
 # 安装 Supabase CLI

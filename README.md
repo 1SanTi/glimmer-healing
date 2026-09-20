@@ -93,7 +93,7 @@ pnpm web                  # 跑 Web 版
 | **UI 组件** | `@rn-primitives/*` · lucide-react-native · react-native-svg |
 | **状态与存储** | React Context · AsyncStorage · expo-sqlite |
 | **后端** | Supabase（PostgreSQL + Auth + Storage + Realtime） |
-| **服务端逻辑** | 33 个 Supabase Edge Functions（Deno / TypeScript） |
+| **服务端逻辑** | 32 个 Supabase Edge Functions（Deno / TypeScript） |
 | **AI 能力** | 多模型路由（DeepSeek / GLM / Qwen / Kimi / 混元 等） |
 | **支付** | 支付宝（含单文件版 Deno SDK） |
 | **可观测性** | Sentry React Native |
@@ -122,8 +122,8 @@ pnpm web                  # 跑 Web 版
 │   ├── db/api.ts                 # 数据访问层
 │   └── client/supabase.ts        # Supabase 客户端
 ├── supabase/
-│   ├── migrations/               # 47 个数据库迁移
-│   ├── functions/                # 33 个 Edge Functions
+│   ├── migrations/               # 48 个数据库迁移
+│   ├── functions/                # 32 个 Edge Functions
 │   ├── schema.sql                # 完整数据库结构快照
 │   └── secrets/required.json     # 所需服务端密钥清单
 ├── docs/

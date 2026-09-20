@@ -109,7 +109,7 @@ Edge Function 是**公开可访问的 URL**，不要假设「客户端没调用�
 - ❌ **`service_role` key 绝不能出现在客户端**。它会绕过全部 RLS。
 - ❌ 支付宝私钥、各模型厂商 API Key 等必须放在 Edge Function Secrets 中。
 
-本项目全部 33 个 Edge Function 均通过 `Deno.env.get(...)` 读取密钥，
+本项目全部 32 个 Edge Function 均通过 `Deno.env.get(...)` 读取密钥，
 所需密钥清单见 `supabase/secrets/required.json`。
 
 #### 要求 5：`.env` 不得提交
