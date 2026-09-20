@@ -54,14 +54,30 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Prepare .env
-        # 构建期需要占位配置；EXPO_PUBLIC_* 会被内联进 bundle，
-        # 因此这里只允许放公开值。真实密钥不应出现在 CI 中。
+        env:
+          SUPABASE_URL: ${{ vars.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+          APP_ID: ${{ vars.EXPO_PUBLIC_APP_ID }}
+        # 优先使用仓库 Variables：
+        #   Settings → Secrets and variables → Actions → Variables
+        #     EXPO_PUBLIC_SUPABASE_URL       例如 https://xxxx.supabase.co
+        #     EXPO_PUBLIC_SUPABASE_ANON_KEY  anon key（设计上允许公开，权限由 RLS 控制）
+        #     EXPO_PUBLIC_APP_ID             可选
+        #
+        # ⚠️ 这些值会被内联进 APK 并可被解包读取，因此只能放**公开**信息。
+        #    切勿在此放 service_role key、支付私钥或任何模型 API Key。
         run: |
-          if [ -f .env.example ]; then
-            cp .env.example .env
+          set -euo pipefail
+          if [ -n "${SUPABASE_URL:-}" ]; then
+            echo "::notice::使用仓库 Variables 中配置的后端构建 APK"
+            {
+              echo "EXPO_PUBLIC_SUPABASE_URL=${SUPABASE_URL}"
+              echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}"
+              echo "EXPO_PUBLIC_APP_ID=${APP_ID:-app-glimmer-healing}"
+            } > .env
           else
-            echo "EXPO_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co" >> .env
-            echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=placeholder" >> .env
+            echo "::warning::未配置 EXPO_PUBLIC_SUPABASE_URL —— APK 将使用占位后端，可浏览界面但无法登录"
+            cp .env.example .env
           fi
 
       - name: Prebuild Android project
