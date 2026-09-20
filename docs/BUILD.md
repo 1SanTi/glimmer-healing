@@ -212,5 +212,28 @@ git push origin v1.0.461
 ```
 
 GitHub Actions 会构建 APK 并作为 Release 附件上传。
-若仓库配置了 `ANDROID_KEYSTORE_BASE64` 等 Secrets，则使用你的正式签名；
-否则回退为调试签名（仍可安装，但不适合正式分发）。
+
+**默认行为**：未做额外配置时，CI 使用 React Native 模板的调试签名。
+产出的 APK 可以正常安装使用，但不同构建之间签名可能变化，不适合正式分发。
+
+**启用正式签名**：在 **Settings → Secrets and variables → Actions** 中配置：
+
+| 类型 | 名称 | 值 |
+|------|------|-----|
+| Variable | `ANDROID_SIGNING_ENABLED` | `true`（开关） |
+| Secret | `ANDROID_KEYSTORE_BASE64` | keystore 的 base64：`base64 -w0 release.keystore` |
+| Secret | `ANDROID_KEY_ALIAS` | key 别名 |
+| Secret | `ANDROID_STORE_PASSWORD` | keystore 密码 |
+| Secret | `ANDROID_KEY_PASSWORD` | key 密码 |
+
+**让发布包连接你自己的后端**（否则下载者只能浏览界面，无法登录与使用 AI 功能）：
+
+| 类型 | 名称 | 值 |
+|------|------|-----|
+| Variable | `EXPO_PUBLIC_SUPABASE_URL` | `https://<project-ref>.supabase.co` |
+| Variable | `EXPO_PUBLIC_SUPABASE_ANON_KEY` | 你的 anon key |
+| Variable | `EXPO_PUBLIC_APP_ID` | 可选 |
+
+> ⚠️ 这些值会被内联进 APK 并可被解包读取，因此**只能放公开信息**。
+> 切勿放入 `service_role` key、支付私钥或模型 API Key。
+
