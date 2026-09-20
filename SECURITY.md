@@ -156,9 +156,18 @@ Edge Function 是**公开可访问的 URL**，不要假设「客户端没调用�
 
 > ⚠️ **第 1～3 项修复改变了权限行为。**
 > 对于**已经部署过**的实例，数据库迁移不会自动重跑，旧的宽松策略很可能仍然生效。
-> 请到 Supabase Dashboard → **Authentication → Policies** 中手动核对
-> `admin_users` 的 INSERT 策略，并确认 `generate-codes` / `get-admin-stats`
-> 已重新部署为带鉴权的版本。
+>
+> 修复存量实例的两种方式（任选其一）：
+>
+> 1. 执行本仓库提供的幂等迁移
+>    [`supabase/migrations/00048_harden_admin_users_insert_policy.sql`](supabase/migrations/00048_harden_admin_users_insert_policy.sql)；
+> 2. 或到 Supabase Dashboard → **Authentication → Policies** 手动核对
+>    `admin_users` 的 INSERT 策略。
+>
+> 同时必须**重新部署** `generate-codes` 与 `get-admin-stats`
+> （`supabase functions deploy generate-codes get-admin-stats`）——
+> 函数代码的修复不会自动生效。完整步骤见
+> [自部署指南第 10 节](docs/SELF-HOSTING.md#10-已有部署的升级重要)。
 >
 > 第 4 项的密码应尽快更换。由于服务端权限现已不依赖该密码，
 > 更换后即使密码再次泄露也不会造成权限提升。

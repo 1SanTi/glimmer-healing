@@ -26,7 +26,7 @@
 
 ### 方式 B：按顺序执行迁移（推荐跟随上游更新）
 
-在 SQL Editor 中按文件名数字顺序依次执行 `supabase/migrations/*.sql`（00001 → 00047）。
+在 SQL Editor 中按文件名数字顺序依次执行 `supabase/migrations/*.sql`（00001 → 00048）。
 
 或用 Supabase CLI：
 
@@ -193,3 +193,33 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 - [ ] 已用普通账号验证：**无法**读取他人的 `user_subscriptions`、`redemption_codes`
 - [ ] 已用普通账号验证：**无法**把自己插入 `admin_users`
 - [ ] `.env` 未提交到版本控制
+
+---
+
+## 10. 已有部署的升级（重要）
+
+如果你在 2026-09 之前已经部署过本项目，**请务必执行本节**。
+
+数据库迁移不会自动重跑，因此早期版本中存在的宽松 RLS 策略很可能仍留在你的实例上。
+`supabase/migrations/00048_harden_admin_users_insert_policy.sql` 专门用于修复这类存量实例。
+
+```bash
+supabase db push        # 或直接在 SQL Editor 中执行 00048 文件内容
+```
+
+该迁移做的事情：
+
+1. 删除 `admin_users_insert_self` 策略（`WITH CHECK (auth.uid() = id)`）
+2. 重建为 `admin_users_insert_admin`（`WITH CHECK (is_admin())`）
+
+### 还需要你手动完成的三件事
+
+| # | 事项 | 说明 |
+|---|------|------|
+| 1 | **审计现有管理员** | 执行迁移文件末尾的查询。若该漏洞曾被利用，攻击者的 user id 会出现在 `admin_users` 中，需手动删除 |
+| 2 | **重新部署两个 Edge Function** | `generate-codes` 与 `get-admin-stats` 原先缺少服务端鉴权，需重新部署为当前版本：`supabase functions deploy generate-codes get-admin-stats` |
+| 3 | **核对兑换码历史** | 执行迁移文件末尾的兑换码统计查询，确认没有异常的批量生成记录 |
+
+> ⚠️ 若第 1、3 步发现异常数据，说明漏洞可能已被利用。
+> 应同时排查 `payment_orders` 与用户订阅记录，并考虑轮换 `service_role` key。
+
