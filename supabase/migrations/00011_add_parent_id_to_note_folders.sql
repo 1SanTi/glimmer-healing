@@ -1,0 +1,1 @@
+ALTER TABLE note_folders ADD COLUMN IF NOT EXISTS parent_id UUID REFERENCES note_folders(id) ON DELETE CASCADE;

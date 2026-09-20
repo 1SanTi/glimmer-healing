@@ -1,0 +1,1 @@
+ALTER TABLE rel_edges ADD COLUMN IF NOT EXISTS trust_score integer NOT NULL DEFAULT 0;

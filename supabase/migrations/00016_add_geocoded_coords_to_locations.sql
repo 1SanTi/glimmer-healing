@@ -1,0 +1,3 @@
+ALTER TABLE relationship_locations
+  ADD COLUMN IF NOT EXISTS geocoded_lat DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS geocoded_lng DOUBLE PRECISION;

@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* 微光心愈 - 温润光影极简风 */
+    --background: 36 25% 96%;        /* 暖米白 #F7F5F0 */
+    --foreground: 0 0% 17%;          /* 深炭灰 #2C2C2C */
+    --card: 0 0% 100%;               /* 纯白卡片 */
+    --card-foreground: 0 0% 17%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 17%;
+    --primary: 28 75% 65%;           /* 微光琥珀 #E8A365 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 150 20% 88%;        /* 浅鼠尾草绿 */
+    --secondary-foreground: 160 25% 30%;
+    --muted: 36 20% 92%;             /* 淡米色 */
+    --muted-foreground: 0 0% 45%;
+    --accent: 155 25% 55%;           /* 鼠尾草绿 #7A9D8C */
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 36 15% 88%;
+    --input: 36 15% 88%;
+    --ring: 28 75% 65%;
+    --radius: 0.75rem;
+    /* 苍鹭医生 手绘涂鸦风 */
+    --heron-primary: 155 25% 55%;       /* 鼠尾草绿 #7A9D8C */
+    --heron-primary-foreground: 0 0% 100%;
+    --heron-accent: 18 75% 65%;          /* 蜡笔橙 #E88D67 */
+    --heron-accent-foreground: 0 0% 100%;
+    --heron-bubble: 36 30% 96%;          /* 奶白气泡 */
+    --heron-bubble-foreground: 0 0% 17%;
+    --heron-ink: 0 0% 17%;               /* 炭灰描边 */
+  }
+
+  .dark {
+    --background: 222 30% 12%;
+    --foreground: 36 20% 92%;
+    --card: 222 25% 17%;
+    --card-foreground: 36 20% 92%;
+    --popover: 222 25% 17%;
+    --popover-foreground: 36 20% 92%;
+    --primary: 28 75% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 222 20% 25%;
+    --secondary-foreground: 36 20% 85%;
+    --muted: 222 20% 22%;
+    --muted-foreground: 36 15% 60%;
+    --accent: 155 25% 45%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 222 20% 28%;
+    --input: 222 20% 28%;
+    --ring: 28 75% 65%;
+    --heron-primary: 155 25% 45%;
+    --heron-primary-foreground: 0 0% 100%;
+    --heron-accent: 18 70% 60%;
+    --heron-accent-foreground: 0 0% 100%;
+    --heron-bubble: 222 20% 22%;
+    --heron-bubble-foreground: 36 20% 92%;
+    --heron-ink: 36 20% 92%;
+  }
+}

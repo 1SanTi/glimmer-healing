@@ -1,0 +1,1 @@
+ALTER TABLE relationship_nodes ADD COLUMN IF NOT EXISTS node_color text NOT NULL DEFAULT '#8B5E3C';

@@ -1,0 +1,1 @@
+ALTER TABLE rel_edges ADD COLUMN IF NOT EXISTS line_style text NOT NULL DEFAULT 'solid' CHECK (line_style IN ('solid','curve','dashed'));

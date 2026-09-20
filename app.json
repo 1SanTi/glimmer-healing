@@ -1,0 +1,75 @@
+{
+  "expo": {
+    "name": "Glimmer Healing",
+    "slug": "glimmer-healing",
+    "scheme": "glimmer-healing",
+    "version": "1.0.461",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "buildNumber": "1",
+      "bundleIdentifier": "com.miaoda.appcbrme32s08ox",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "audio"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1,
+      "package": "com.miaoda.appcbrme32s08ox"
+    },
+    "web": {
+      "bundler": "metro",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      "expo-sqlite",
+      "expo-font",
+      "expo-system-ui",
+      "expo-image",
+      "expo-file-system",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许微光心愈访问您的相册，以便上传房树人测试画作和关系网络节点照片",
+          "cameraPermission": "允许微光心愈访问相机，以便拍摄节点照片"
+        }
+      ],
+      "expo-audio",
+      "@react-native-async-storage/expo-with-async-storage",
+      "expo-document-picker",
+      "expo-web-browser",
+      "expo-sharing",
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "允许微光心愈保存沙盘图片到您的相册",
+          "savePhotosPermission": "允许微光心愈保存图片到您的相册",
+          "isAccessMediaLocationEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "iosDisplayInForeground": true
+        }
+      ]
+    ],
+    "router": {
+      "root": "src"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -1,0 +1,172 @@
+name: Release APK
+
+# 打 v* 标签时自动构建 Android APK 并作为 Release 附件上传。
+# 也可在 Actions 页面手动触发（workflow_dispatch）。
+#
+# 签名说明：
+#   - 未配置 Secrets 时：使用 React Native 模板默认的 debug 签名。
+#     产出的 APK 可以正常安装使用，但不适合正式分发（不同构建之间签名可能不同）。
+#   - 配置了 ANDROID_KEYSTORE_BASE64 等 Secrets 时：注入正式签名配置。
+#     需要以下四个 Secrets：
+#       ANDROID_KEYSTORE_BASE64   —— keystore 文件的 base64（base64 -w0 release.keystore）
+#       ANDROID_KEY_ALIAS         —— key 别名
+#       ANDROID_STORE_PASSWORD    —— keystore 密码
+#       ANDROID_KEY_PASSWORD      —— key 密码
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Prepare .env
+        # 构建期需要占位配置；EXPO_PUBLIC_* 会被内联进 bundle，
+        # 因此这里只允许放公开值。真实密钥不应出现在 CI 中。
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            echo "EXPO_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co" >> .env
+            echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=placeholder" >> .env
+          fi
+
+      - name: Prebuild Android project
+        run: npx expo prebuild --platform android --clean
+
+      - name: Inject release signing config
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > android/app/release.keystore
+
+          cat >> android/gradle.properties <<EOF
+          GLIMMER_STORE_FILE=release.keystore
+          GLIMMER_KEY_ALIAS=$ANDROID_KEY_ALIAS
+          GLIMMER_STORE_PASSWORD=$ANDROID_STORE_PASSWORD
+          GLIMMER_KEY_PASSWORD=$ANDROID_KEY_PASSWORD
+          EOF
+
+          node - <<'NODE'
+          const fs = require('fs');
+          const p = 'android/app/build.gradle';
+          let s = fs.readFileSync(p, 'utf8');
+
+          const signing = `
+              release {
+                  storeFile file(GLMMER_STORE_FILE)
+                  storePassword GLIMMER_STORE_PASSWORD
+                  keyAlias GLIMMER_KEY_ALIAS
+                  keyPassword GLIMMER_KEY_PASSWORD
+              }
+          `;
+
+          // 在 signingConfigs 块内追加 release 配置
+          if (!s.includes('signingConfigs')) {
+            throw new Error('signingConfigs block not found in android/app/build.gradle');
+          }
+          s = s.replace(/signingConfigs\s*\{/, (m) => m + signing);
+
+          // 让 release buildType 使用新签名
+          s = s.replace(
+            /(buildTypes\s*\{[\s\S]*?release\s*\{[\s\S]*?)signingConfig\s+signingConfigs\.debug/,
+            '$1signingConfig signingConfigs.release'
+          );
+
+          fs.writeFileSync(p, s);
+          console.log('Injected release signing config.');
+          NODE
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Rename artifact
+        id: rename
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./app.json').expo.version")
+          TAG="${GITHUB_REF_NAME:-manual}"
+          OUT="Glimmer-Healing-${VERSION}-${TAG}.apk"
+          SRC=$(find android/app/build/outputs/apk/release -name '*.apk' | head -n1)
+          if [ -z "$SRC" ]; then
+            echo "No APK produced" >&2
+            exit 1
+          fi
+          cp "$SRC" "$OUT"
+          echo "artifact=$OUT" >> "$GITHUB_OUTPUT"
+          ls -lh "$OUT"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: glimmer-healing-apk
+          path: ${{ steps.rename.outputs.artifact }}
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.rename.outputs.artifact }}
+          generate_release_notes: true
+          body: |
+            ## 📦 下载安装
+
+            下载下方的 `${{ steps.rename.outputs.artifact }}`，在 Android 手机上安装。
+
+            > 首次安装需允许「安装未知来源应用」。若提示「不安全的应用」，
+            > 选择「仍然安装」—— 这是自签名 APK 的正常提示。
+
+            **系统要求**：Android 7.0（API 24）及以上。
+
+            ## 📖 文档
+
+            - [构建指南](https://github.com/${{ github.repository }}/blob/main/docs/BUILD.md)
+            - [自部署指南](https://github.com/${{ github.repository }}/blob/main/docs/SELF-HOSTING.md)
+            - [安全策略](https://github.com/${{ github.repository }}/blob/main/SECURITY.md)
+
+            ## ⚠️ 免责声明
+
+            本应用为心理健康**辅助**工具，不构成专业心理诊断、治疗或医疗建议。
